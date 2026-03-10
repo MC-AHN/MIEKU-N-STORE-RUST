@@ -1,0 +1,15 @@
+# Tahap 1: Memasak (Build)
+FROM rust:1.75-slim as builder
+WORKDIR /app
+# Pasang library pendukung biar gak error saat masak
+RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+COPY . .
+RUN cargo build --release
+
+# Tahap 2: Menghidangkan (Runtime)
+FROM debian:bookworm-slim
+WORKDIR /usr/local/bin
+# Pasang sertifikat SSL biar bisa ngobrol sama Supabase
+RUN apt-get update && apt-get install -y ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/target/release/nama_proyek_kamu .
+CMD ["./miror-project-from-js-01"]
